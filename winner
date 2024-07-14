@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar Ganador</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        /* Estilos personalizados */
+        #ticketNumber, .btn {
+            font-size: 1em; /* Tamaño de fuente adaptable */
+            height: auto; /* Ajusta la altura automáticamente */
+            padding: 0.75em 1.5em; /* Ajusta el relleno */
+        }
+        @media (max-width: 576px) {
+            #ticketNumber, .btn {
+                font-size: 1.2em; /* Aumenta el tamaño de la fuente para dispositivos móviles */
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <h1 class="mt-5">Buscar Ganador</h1>
+                <form id="searchForm" class="mt-4">
+                    <div class="form-group">
+                        <label for="ticketNumber">Número de Ticket:</label>
+                        <input type="number" id="ticketNumber" name="ticketNumber" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Buscar</button>
+                </form>
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const ticketNumber = parseInt(document.getElementById('ticketNumber').value);
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+            // Generar una URL única para evitar el almacenamiento en caché
+            const timestamp = new Date().getTime();
+            const csvUrl = `data.csv?timestamp=${timestamp}`;
+
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    const data = results.data;
+                    const ticketIndex = data.findIndex(row => parseInt(row['Ticket Number']) === ticketNumber);
+
+                    if (ticketIndex !== -1) {
+                        const row = data[ticketIndex];
+                        const correo = row['Username'];
+                        const orderId = row['Order ID'];
+                        resultsDiv.innerHTML = `<p class="font-weight-bold">El correo del Ticket Number ${ticketNumber} es: ${correo}</p>
+                                                <p class="font-weight-bold">Pedido: ${orderId}</p>`;
+                    } else {
+                        resultsDiv.innerHTML = `<p>No se encontró el Ticket Number ${ticketNumber}.</p>`;
+                    }
+                },
+                error: function() {
+                    resultsDiv.innerHTML = '<p class="text-danger">Hubo un error al procesar el archivo CSV.</p>';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

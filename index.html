@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buscar Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        /* Estilos personalizados */
+        #email, .btn {
+            font-size: 1em; /* Tamaño de fuente adaptable */
+            height: auto; /* Ajusta la altura automáticamente */
+            padding: 0.75em 1.5em; /* Ajusta el relleno */
+        }
+        @media (max-width: 576px) {
+            #email, .btn {
+                font-size: 1.2em; /* Aumenta el tamaño de la fuente para dispositivos móviles */
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <h1 class="mt-5">Buscar Tickets con Correo</h1>
+                <form id="searchForm" class="mt-4">
+                    <div class="form-group">
+                        <label for="email">Correo:</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Buscar</button>
+                </form>
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var email = document.getElementById('email').value.toLowerCase(); // Convertir el correo a minúsculas
+        var resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+        // Generar una URL única para evitar el almacenamiento en caché
+        var timestamp = new Date().getTime();
+        var csvUrl = `data.csv?timestamp=${timestamp}`;
+
+        Papa.parse(csvUrl, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                var emailToSearch = `guest (${email})`; // Convertir a minúsculas
+                var results = results.data.filter(row => row.Username.toLowerCase() === emailToSearch && row['Order Status'] === 'Processing'); // Convertir a minúsculas
+                if (results.length > 0) {
+                    var tickets = results.map(row => row['Ticket Number']);
+                    resultsDiv.innerHTML = `<p class="font-weight-bold">Registros asociados al correo ${emailToSearch} en la columna 'Ticket Number' con 'Order Status' como 'Processing':</p>`;
+                    resultsDiv.innerHTML += `<p>Ticket Numbers Asociados: ${tickets.join(', ')}</p>`;
+                } else {
+                    resultsDiv.innerHTML = `<p>No se encontraron registros para el correo ${emailToSearch} con 'Order Status' como 'Processing'.</p>`;
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>
